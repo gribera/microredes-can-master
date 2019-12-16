@@ -17,13 +17,10 @@ class Componentes:
     def __init__(self, master):
         self.master = master
 
-
     def getValues(self):
         return self.valoresInt
 
     def drawValues(self, event):
-        label = {}
-
         self.valoresInt = [int(self.dicFunctions[self.selectedOption[0].get()], 0),
                           int(self.dicDispOrigen[self.selectedOption[1].get()], 0),
                           int(self.dicDispDestino[self.selectedOption[2].get()], 0),
@@ -56,7 +53,11 @@ class Componentes:
             lb = tk.Label(self.master, text=self.comboLabel[idx])
             lb.grid(row=0, column=idx, padx=10, pady=10)
             # Agrega combo
-            cmbFnc = ttk.Combobox(self.master, values=valores, justify="center", textvariable=self.selectedOption[idx], state="readonly")
+            cmbFnc = ttk.Combobox(self.master, 
+                                  values=valores, 
+                                  justify="center", 
+                                  textvariable=self.selectedOption[idx], 
+                                  state="readonly")
             cmbFnc.bind("<<ComboboxSelected>>", self.drawValues)
             cmbFnc.grid(row=1, column=idx, padx=10, pady=10)
             cmbFnc.current(0)
@@ -70,11 +71,16 @@ class Componentes:
         self.txtTerminal.config(yscrollcommand=self.scrollbar.set, 
                                 background="#000000", 
                                 foreground="#4DFF00",
-                                font=("Fixedsys", 10))
+                                font=("Fixedsys", 10),
+                                padx=3, pady=3)
         self.txtTerminal.grid(column=0, row=10, columnspan=6)
 
         self.scrollbar.config(command=self.txtTerminal.yview)
         self.scrollbar.grid(column=6, row=10, sticky='NSW')
+
+    def insertTerminal(self, data):
+        self.txtTerminal.insert(tk.END, data)
+        self.txtTerminal.see("end")
 
     def clearTerminal(self):
         self.txtTerminal.delete("1.0", tk.END)
