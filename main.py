@@ -59,10 +59,9 @@ class MainWindow:
         time.sleep(1)
         self.comm.sendCmd(str(commands[1]).encode())
         time.sleep(1)
-        self.comm.sendCmd(str(str(commands[2])+
-                              str(commands[3])+
-                              str(commands[4])+
-                              str(commands[5])).encode())
+
+        envio = (commands[2] << 24) | (commands[3] << 16) | (commands[4] << 8) | (commands[5])
+        self.comm.sendCmd(str(envio).encode())
         time.sleep(1)
         self.comm.sendCmd(str(0).encode())
 
