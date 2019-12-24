@@ -21,14 +21,17 @@ class MainWindow:
         # Instancia la clase con los componentes que se verán en pantalla
         self.components = components.Componentes(self.master)
 
+        # Se crea el objeto para la comunicación serial
+        self.comm = serial.Serial()
+
         # Dibuja componentes
         self.components.drawSelect()
         self.components.drawValues(0)
         self.components.drawTerminal()
+        # self.components.drawPortSelect(self.comm.getPorts())
         self.drawButtons()
 
-        # Se crea el objeto para la comunicación serial
-        self.comm = serial.Serial()
+        self.comm.getPorts()
 
         # Inicia thread para recibir datos por el puerto serial
         self.thread1 = threading.Thread(name="listen", target=self.comm.readFromPort)
@@ -52,26 +55,30 @@ class MainWindow:
         self.comm.sendCmd('\x1b\x65\x0d'.encode())
 
     def canSend(self):
-        self.comm.sendCmd('\x1b\x33\x0d'.encode())
+        self.comm.sendCmd('\x1b\x34'.encode())
         commands = self.components.getValues()
 
-        self.comm.sendCmd(str(commands[0]).encode())
-        time.sleep(1)
-        self.comm.sendCmd(str(commands[1]).encode())
-        time.sleep(1)
+        print(commands)
 
-        envio = (commands[2] << 24) | (commands[3] << 16) | (commands[4] << 8) | (commands[5])
-        self.comm.sendCmd(str(envio).encode())
-        time.sleep(1)
-        self.comm.sendCmd(str(0).encode())
+        envio = ''
+        for x in range(0,9):
+            envio = envio + hex(commands[x])[2:].zfill(2)
+
+        print(envio)
+        self.comm.sendCmd(bytes.fromhex(envio))
+        self.comm.sendCmd('\x0d'.encode())
+
+    def drawPorts(self):
+        for p in self.comm.getPorts():
+            print(p.device)
 
     def drawButtons(self):
         self.btnSend = Button(self.master, text="Enviar", command=self.canSend)
-        self.btnSend.grid(column=1, row=8, columnspan=2, padx=10, pady=10)
+        self.btnSend.grid(row=8, column=1, columnspan=2, padx=10, pady=10)
         self.btnSend = Button(self.master, text="Datos Equipo", command=self.datosEquipo)
-        self.btnSend.grid(column=2, row=8, columnspan=2, padx=10, pady=10)
+        self.btnSend.grid(row=8, column=2, columnspan=2, padx=10, pady=10)
         self.btnSend = Button(self.master, text="Limpiar", command=self.components.clearTerminal)
-        self.btnSend.grid(column=3, row=8, columnspan=2, padx=10, pady=10)
+        self.btnSend.grid(row=8, column=3, columnspan=2, padx=10, pady=10)
 
 root = Tk()
 main = MainWindow(root)
