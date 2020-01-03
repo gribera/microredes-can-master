@@ -1,0 +1,66 @@
+from tkinter import * 
+import tkinter as tk 
+
+class dlgConnect():
+    def __init__(self, master, parent, comm):
+        self.master = master
+        self.parent = parent
+        self.modal = Toplevel(self.master)
+        self.comm = comm
+        self.ports = self.comm.getPorts()
+        self.selectedPort = StringVar()
+        self.baudios = IntVar()
+
+    def showDialog(self):
+        baudios = ['9600', '14400', '19200', '28800', '38400', '57600', '115200']
+        self.modal.geometry('330x160+480+198')
+        self.modal.focus_set()
+        self.modal.grab_set()
+        self.modal.transient(master=self.master)
+        self.modal.title("Seleccionar puerto")
+
+        frame = LabelFrame(self.modal)
+        frame.grid(row=0, column=0, pady=10, padx=10)
+
+        tk.Label(frame, text="Puerto").grid(row=1, column=0)
+        cmbPS = ttk.Combobox(frame,
+                             values=self.ports,
+                             justify="center",
+                             textvariable=self.selectedPort,
+                             state="readonly")
+        cmbPS.bind('<<ComboboxSelected>>', self.portSelect)
+        cmbPS.grid(row=1, column=1, padx=10, pady=10)
+
+        if len(self.ports) > 0:
+            btnState = NORMAL
+            cmbPS.current(0)
+        else:
+            btnState = DISABLED
+
+        tk.Label(frame, text="Velocidad").grid(row=2, column=0)
+        cmbBaudios = ttk.Combobox(frame,
+                             values=baudios,
+                             justify="center",
+                             textvariable=self.baudios,
+                             state="readonly")
+
+        cmbBaudios.grid(row=2, column=1, padx=10, pady=10)
+        cmbBaudios.current(6)
+
+        self.btnConectar = Button(frame, text="Conectar",
+                                command=lambda: self.connect(self.selectedPort.get(), self.baudios.get()),
+                                state=btnState)
+        self.btnConectar.grid(row=3, column=0, pady=10, padx=10)
+        self.btnCancelar = Button(frame, text="Cancelar", command=self.modal.destroy)
+        self.btnCancelar.grid(row=3, column=1, pady=10, padx=10)
+
+        self.modal.wait_window(self.modal)
+
+    def portSelect(self, event):
+        self.btnConectar.configure(state=NORMAL)
+
+    def connect(self, port, baudios):
+        self.comm.connect(port, baudios)
+        self.comm.initQueue()
+        # self.parent.buttonStates()
+        self.modal.destroy()
