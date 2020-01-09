@@ -19,7 +19,9 @@ class MainWindow:
         self.master.title("CAN Sender-Receiver")
 
         # Dimensión de la pantalla
-        self.master.geometry("1184x466")
+        # self.master.geometry("1230x466")
+
+        # self.master.attributes("-fullscreen", True)
 
         self.thread2 = threading.Thread(name="read", target=self.readQueue)
 
@@ -49,33 +51,41 @@ class MainWindow:
 
     def readQueue(self):
         while self.comm.isConnected():
-            self.components.insertTerminal(self.comm.getQueue())
+            time.sleep(0.1)
+            # print('queueRead')
+            queueRead = self.comm.getQueue()
+            print("TIPO")
+            print(type(queueRead))
+            self.components.insertList(queueRead)
+            # self.components.insertTerminal(str(queueRead))
+            # self.components.insertTerminal('\n')
         print('QUEUE STOPPED')
 
 
     def datosEquipo(self):
-        self.comm.sendCmd('\x1b\x65\x0d'.encode())
+        pass
+        # self.comm.sendCmd('\x1b\x65\x0d'.encode())
 
     def canSend(self):
-        self.comm.sendCmd('\x1b\x34'.encode())
         commands = self.components.getValues()
 
-        envio = ''
-        for x in range(0,9):
-            envio = envio + hex(commands[x])[2:].zfill(2)
+        arbitrationId = (commands[0] << 5) | commands[1]
 
-        self.comm.sendCmd(bytes.fromhex(envio))
-        self.comm.sendCmd('\x0d'.encode())
+        dataLow = commands[2:6][::-1]
+        dataHigh = commands[6:10][::-1]
+        envio = dataLow + dataHigh
+
+        self.comm.sendCmd(arbitrationId, envio)
 
     def drawButtons(self):
         self.buttonFrame = Frame(self.master)
-        self.buttonFrame.grid(row=8, column=0, columnspan=6)        
+        self.buttonFrame.grid(row=8, column=8, columnspan=2)        
         self.btnSend = Button(self.buttonFrame, text="Enviar", command=self.canSend)
-        self.btnSend.pack(side=LEFT, padx=30, pady=10)
+        self.btnSend.pack(side=TOP, padx=30, pady=10)
         self.btnSend = Button(self.buttonFrame, text="Datos Equipo", command=self.datosEquipo)
-        self.btnSend.pack(side=LEFT, padx=30, pady=10)
-        self.btnSend = Button(self.buttonFrame, text="Limpiar", command=self.components.clearTerminal)
-        self.btnSend.pack(side=LEFT, padx=30, pady=10)
+        self.btnSend.pack(side=TOP, padx=30, pady=10)
+        self.btnSend = Button(self.buttonFrame, text="Limpiar", command=self.components.clearList)
+        self.btnSend.pack(side=TOP, padx=30, pady=10)
 
 
 root = Tk()

@@ -13,16 +13,21 @@ class Componentes:
 
     dicDispOrigen = {'Broadcast': '0x00', 'Master': '0x01'}
 
-    dicDispDestino = {'Equipo 1': '0x02', 'Equipo 2': '0x03'}
+    dicDispDestino = {'Equipo 2': '0x02', 'Equipo 3': '0x03', 'Equipo 4': '0x04'}
 
     dicVariable = {'DIGITAL_OUT': '0x00', 'DIGITAL_IN': '0x01', 
-                    'ANALOG_OUT': '0x012', 'ANALOG_IN': '0x03'}
+                    'ANALOG_OUT': '0x02', 'ANALOG_IN': '0x03', 
+                    'MODO_FUNC': '0x04', 'ANALOG': '0x05', 'IN-AMP': '0x06',
+                    'AMP-INAMP': '0x07','PWM': '0x08', 'ECHO': '0x09',
+                    'RTC1': '0x0A', 'PARADA': '0x0B', 'SOFT_RESET': '0x0C',}
 
     combos = [dicFunctions, dicDispOrigen, dicDispDestino, dicVariable, 
-                list(range(0,255)), list(range(0,255))]
+                list(range(0,255)), list(range(0,255)), list(range(0,255)), 
+                list(range(0,255)), list(range(0,255)), list(range(0,255))]
 
-    comboLabel = ['Función', 'Dispositivo Origen', 'Dispositivo Destino', 
-                  'Variable', 'Byte 1', 'Byte 2']
+    comboLabel = ['Función', 'Origen', 'Destino', 'Variable', 
+                  'Byte 1', 'Byte 2', 'Byte 3', 'Byte 4', 'Byte 5', 
+                  'Byte 6', 'Byte 7']
 
     selectedOption = {}
 
@@ -42,7 +47,7 @@ class Componentes:
         status = Label(self.master, 
                        text="StatusbaR", 
                        bd=1, 
-                       relief=tk.SUNKEN).grid(row=10, column=0, columnspan=6, sticky='WE')
+                       relief=tk.SUNKEN).grid(row=10, column=0, columnspan=10, sticky='WE')
 
         menuFunciones = Menu(menubar, tearoff=0)
         menuSalir = Menu(menubar, tearoff=0)
@@ -66,15 +71,22 @@ class Componentes:
         return self.valoresInt
 
     def drawValues(self, event):
+        # frame = LabelFrame(self.master)
+        # frame.grid(row=7, column=0, columnspan=10, pady=10, padx=10)
+
         self.valoresInt = [int(self.dicFunctions[self.selectedOption[0].get()], 0),
                           int(self.dicDispOrigen[self.selectedOption[1].get()], 0),
                           int(self.dicDispDestino[self.selectedOption[2].get()], 0),
                           int(self.dicVariable[self.selectedOption[3].get()], 0),
                           int(self.selectedOption[4].get()),
-                          int(self.selectedOption[5].get()), 0, 0, 0, 0]
+                          int(self.selectedOption[5].get()),
+                          int(self.selectedOption[6].get()),
+                          int(self.selectedOption[7].get()),
+                          int(self.selectedOption[8].get()),
+                          int(self.selectedOption[9].get())]
 
         for row in range(0, 3):
-            for col in range(0, 6):
+            for col in range(0, 10):
                 if row == 0:
                     val = self.valoresInt[col]
                 if row == 1:
@@ -86,6 +98,8 @@ class Componentes:
                 lb.grid(row=row+4, column=col)
 
     def drawSelect(self):
+        row = 1
+        col = 0
         for idx in range(0, len(self.combos)):
             self.selectedOption[idx] = tk.StringVar()
 
@@ -94,45 +108,89 @@ class Componentes:
             else:
                 valores = self.combos[idx]
 
+            if idx % 6 == 0 and idx != 0:
+                row += 1
+                col = 2
+
             # Agrega etiqueta
             lb = ttk.Label(self.master, text=self.comboLabel[idx])
-            lb.grid(row=0, column=idx, padx=10, pady=10)
+            lb.grid(row=1, column=idx, padx=10, pady=10)
             # Agrega combo
             cmbFnc = ttk.Combobox(self.master, 
                                   values=valores, 
                                   justify="center", 
                                   textvariable=self.selectedOption[idx], 
-                                  state="readonly")
+                                  state="readonly", width=12)
             cmbFnc.bind("<<ComboboxSelected>>", self.drawValues)
-            cmbFnc.grid(row=1, column=idx, padx=10, pady=10)
+            cmbFnc.grid(row=2, column=idx, padx=5, pady=10)
             cmbFnc.current(0)
+            col += 1
 
     def drawTerminal(self):
         self.frame = Frame(self.master)
-        self.frame.grid(row=9, column=0, columnspan=6, padx=10, pady=10)
+        self.frame.grid(row=8, column=0, columnspan=8, padx=10, pady=10)
 
-        self.scrollbar = tk.Scrollbar(self.frame)
-        self.txtTerminal = tk.Text(self.frame, height=14, width=130)
-        self.txtTerminal.config(yscrollcommand=self.scrollbar.set, 
-                                background="#000000", 
-                                foreground="#4DFF00",
-                                font=("Fixedsys", 10),
-                                padx=3, pady=3)
-        self.txtTerminal.grid(row=10, column=0, columnspan=6)
 
-        self.scrollbar.config(command=self.txtTerminal.yview)
-        self.scrollbar.grid(row=10, column=6, sticky='NSW')
+
+        self.list = ttk.Treeview(self.frame, selectmode='browse', columns=("#0","#1", "#2", "#3"))
+        self.list.pack(side=LEFT)
+        # self.list.grid(row=8, column=0, padx=10, pady=10, columnspan=8)
+        self.list.column("#0", width=100)
+        self.list.column("#1", width=100)
+        self.list.column("#2", width=100)
+        self.list.column("#3", width=100)
+        self.list.column("#4", width=300)
+        self.list.heading('#0', text='Hora', anchor=CENTER)
+        self.list.heading('#1', text='Función', anchor=CENTER)
+        self.list.heading('#2', text='Origen', anchor=CENTER)
+        self.list.heading('#3', text='Variable', anchor=CENTER)
+        self.list.heading('#4', text='Data', anchor=CENTER)
+
+        self.scrollbar = ttk.Scrollbar(self.frame, orient="vertical", command=self.list.yview)
+        self.scrollbar.pack(side=RIGHT, fill='y')
+        self.list.configure(yscrollcommand=self.scrollbar.set)
+
+
+        # self.scrollbar = tk.Scrollbar(self.frame)
+        # self.txtTerminal = tk.Text(self.frame, height=14, width=130)
+        # self.txtTerminal.config(yscrollcommand=self.scrollbar.set, 
+        #                         background="#000000", 
+        #                         foreground="#4DFF00",
+        #                         font=("Fixedsys", 10),
+        #                         padx=3, pady=3)
+        # self.txtTerminal.grid(row=10, column=0, columnspan=10)
+
+        # self.scrollbar.config(command=self.txtTerminal.yview)
+        # self.scrollbar.grid(row=10, column=6, sticky='NSW')
 
     def insertTerminal(self, data):
         self.txtTerminal.insert(tk.END, data)
         self.txtTerminal.see("end")
 
-    def clearTerminal(self):
-        self.txtTerminal.delete("1.0", tk.END)
+    def insertList(self, data):
+        # print(hex((msg.arbitration_id & 0x1F)))
+        # print(hex(msg.arbitration_id >> 5))
+        origen = data.arbitration_id & 0x1F
+        funcion = data.arbitration_id >> 5
+        lstData = []
+        for x in data.data:
+            lstData.append(hex(x))
+            pass
+
+        dataLow = lstData[0:4][::-1]
+        dataHigh = lstData[4:8][::-1]
+        strData = dataLow + dataHigh
+
+        self.list.insert("", 'end', text=data.timestamp, values=(hex(funcion), hex(origen), "", strData))
+
+    def clearList(self):
+        for i in self.list.get_children():
+            self.list.delete(i)
+        # self.txtTerminal.delete("1.0", tk.END)
 
     def drawButtons(self):
         self.buttonFrame = Frame(self.master)
-        self.buttonFrame.grid(row=8, column=0, columnspan=6)        
+        self.buttonFrame.grid(row=8, column=0, columnspan=10)        
         # self.btnSend = Button(self.buttonFrame, text="Enviar", command=self.canSend)
         # self.btnSend.pack(side=LEFT, padx=30, pady=10)
         # self.btnSend = Button(self.buttonFrame, text="Datos Equipo", command=self.datosEquipo)

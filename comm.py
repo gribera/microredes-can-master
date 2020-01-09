@@ -1,4 +1,4 @@
-import queue, serial.tools.list_ports,threading
+import can, queue, serial.tools.list_ports, threading
 
 
 class Serial():
@@ -10,20 +10,19 @@ class Serial():
     def __init__(self, thread):
         self.thread = thread
 
-    def connect(self, port, baudrate):
-        self.port = serial.Serial(
-            port=port,
-            baudrate=baudrate,
-            timeout=1
-        )
+    def connect(self, port, baudrate, bitrate):
+        self.bus = can.interface.Bus(bustype='robotell', 
+                                     channel=port, 
+                                     ttyBaudrate=baudrate, 
+                                     bitrate=bitrate)
 
-        if self.port.isOpen():
-            self.connected = True
+
+        self.connected = True
 
         self.initQueue()
 
         # Inicia thread para recibir datos por el puerto serial
-        self.thread1 = threading.Thread(name="listen", target=self.readFromPort)
+        self.thread1 = threading.Thread(name="listen", target=self.readFromBus)
         self.thread1.start()
 
         # Inicia thread para leer el queue (datos que entran por puerto serial)
@@ -38,9 +37,8 @@ class Serial():
 
     def closePort(self):
         self.connected = False
-        self.port.close()
-        self.thread1.join()
         self.thread.join()
+        self.thread1.join()
 
     def getPorts(self):
         ports = []
@@ -49,8 +47,12 @@ class Serial():
 
         return ports
 
-    def sendCmd(self, comando):
-        self.port.write(comando)
+    def sendCmd(self, id, comando):
+        msg = can.Message(arbitration_id=id, 
+            data=comando, 
+            is_extended_id=False)
+
+        self.bus.send(msg)
 
     def getQueueEmpty(self):
         return self.q.empty()
@@ -58,6 +60,8 @@ class Serial():
     def getQueue(self):
         return self.q.get()
 
-    def readFromPort(self):
+    def readFromBus(self):
         while self.connected:
-            self.q.put(self.port.readline().decode())
+            msg = self.bus.recv()
+            if msg is not None:
+                self.q.put(msg)

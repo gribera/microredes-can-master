@@ -10,10 +10,12 @@ class dlgConnect():
         self.ports = self.comm.getPorts()
         self.selectedPort = StringVar()
         self.baudios = IntVar()
+        self.bitrate = IntVar()
 
     def showDialog(self):
         baudios = ['9600', '14400', '19200', '28800', '38400', '57600', '115200']
-        self.modal.geometry('330x160+480+198')
+        bitrate = ['250000', '500000']
+        self.modal.geometry('330x210+480+198')
         self.modal.focus_set()
         self.modal.grab_set()
         self.modal.transient(master=self.master)
@@ -47,20 +49,30 @@ class dlgConnect():
         cmbBaudios.grid(row=2, column=1, padx=10, pady=10)
         cmbBaudios.current(6)
 
+        tk.Label(frame, text="Velocidad Bus").grid(row=3, column=0)
+        cmbBitrate = ttk.Combobox(frame,
+                             values=bitrate,
+                             justify="center",
+                             textvariable=self.bitrate,
+                             state="readonly")
+
+        cmbBitrate.grid(row=3, column=1, padx=10, pady=10)
+        cmbBitrate.current(0)
+
         self.btnConectar = Button(frame, text="Conectar",
-                                command=lambda: self.connect(self.selectedPort.get(), self.baudios.get()),
+                                command=lambda: self.connect(self.selectedPort.get(), self.baudios.get(), self.bitrate.get()),
                                 state=btnState)
-        self.btnConectar.grid(row=3, column=0, pady=10, padx=10)
+        self.btnConectar.grid(row=4, column=0, pady=10, padx=10)
         self.btnCancelar = Button(frame, text="Cancelar", command=self.modal.destroy)
-        self.btnCancelar.grid(row=3, column=1, pady=10, padx=10)
+        self.btnCancelar.grid(row=4, column=1, pady=10, padx=10)
 
         self.modal.wait_window(self.modal)
 
     def portSelect(self, event):
         self.btnConectar.configure(state=NORMAL)
 
-    def connect(self, port, baudios):
-        self.comm.connect(port, baudios)
+    def connect(self, port, baudios, bitrate):
+        self.comm.connect(port, baudios, bitrate)
         self.comm.initQueue()
         # self.parent.buttonStates()
         self.modal.destroy()
