@@ -1,5 +1,5 @@
-from tkinter import * 
-import tkinter as tk 
+from tkinter import *
+import tkinter as tk
 import comm as serial
 import components
 import time
@@ -10,7 +10,7 @@ from tkinter import Button, Tk
 class MainWindow:
     def __init__(self, master):
         self.master = master
-        
+
         self.master.protocol("WM_DELETE_WINDOW", self.closeWindow)
 
         self.master.resizable(0,0)
@@ -43,9 +43,7 @@ class MainWindow:
 
     def closeWindow(self):
         if self.comm.isConnected():
-            print('CLOSING PORT')
             self.comm.closePort()
-        print('DESTROY')
         # self.thread2.join()
         self.master.destroy()
 
@@ -54,13 +52,9 @@ class MainWindow:
             time.sleep(0.1)
             # print('queueRead')
             queueRead = self.comm.getQueue()
-            print("TIPO")
-            print(type(queueRead))
             self.components.insertList(queueRead)
             # self.components.insertTerminal(str(queueRead))
             # self.components.insertTerminal('\n')
-        print('QUEUE STOPPED')
-
 
     def datosEquipo(self):
         pass
@@ -79,7 +73,7 @@ class MainWindow:
 
     def drawButtons(self):
         self.buttonFrame = Frame(self.master)
-        self.buttonFrame.grid(row=8, column=8, columnspan=2)        
+        self.buttonFrame.grid(row=8, column=8, columnspan=2)
         self.btnSend = Button(self.buttonFrame, text="Enviar", command=self.canSend)
         self.btnSend.pack(side=TOP, padx=30, pady=10)
         self.btnSend = Button(self.buttonFrame, text="Datos Equipo", command=self.datosEquipo)
