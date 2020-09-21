@@ -56,7 +56,7 @@ class Componentes:
         self.master.config(menu=menubar)
 
         status = Label(self.master,
-                       text="StatusbaR",
+                       text="v0.2.1",
                        bd=1,
                        relief=tk.SUNKEN).grid(row=10, column=0, columnspan=10, sticky='WE')
 
