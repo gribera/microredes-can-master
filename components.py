@@ -3,8 +3,9 @@ from tkinter import *
 from tkinter import ttk
 from dialogs import change_address
 from dialogs import connect
+from datetime import datetime
 import comm as serial
-# import commands as commands
+import microredes
 
 class Componentes:
     dicFunctions = {'ERR': '0x01', 'DO': '0x04', 'SET': '0x08',
@@ -48,7 +49,7 @@ class Componentes:
         self.master = master
         self.comm = comm
         self.esMaestro = ''
-        # self.commands = Commands(self.comm)
+        self.microredes = microredes.Microredes()
 
         menubar = Menu(self.master)
         self.master.config(menu=menubar)
@@ -144,16 +145,16 @@ class Componentes:
         self.list = ttk.Treeview(self.frame, selectmode='browse', columns=("#0","#1", "#2", "#3"))
         self.list.pack(side=LEFT)
         # self.list.grid(row=8, column=0, padx=10, pady=10, columnspan=8)
-        self.list.column("#0", width=100)
-        self.list.column("#1", width=100)
-        self.list.column("#2", width=100)
-        self.list.column("#3", width=100)
-        self.list.column("#4", width=300)
+        self.list.column("#0", width=200, stretch=NO)
+        self.list.column("#1", width=65, stretch=NO)
+        self.list.column("#2", width=65, stretch=NO)
+        self.list.column("#3", width=300, stretch=NO)
+        self.list.column("#4", width=100, stretch=NO)
         self.list.heading('#0', text='Hora', anchor=CENTER)
         self.list.heading('#1', text='Función', anchor=CENTER)
         self.list.heading('#2', text='Origen', anchor=CENTER)
-        self.list.heading('#3', text='Variable', anchor=CENTER)
-        self.list.heading('#4', text='Data', anchor=CENTER)
+        self.list.heading('#3', text='Data', anchor=CENTER)
+        self.list.heading('#4', text='Variable', anchor=CENTER)
 
         self.scrollbar = ttk.Scrollbar(self.frame, orient="vertical", command=self.list.yview)
         self.scrollbar.pack(side=RIGHT, fill='y')
@@ -177,8 +178,6 @@ class Componentes:
         self.txtTerminal.see("end")
 
     def insertList(self, data):
-        # print(hex((msg.arbitration_id & 0x1F)))
-        # print(hex(msg.arbitration_id >> 5))
         origen = data.arbitration_id & 0x1F
         funcion = data.arbitration_id >> 5
         lstData = []
@@ -190,7 +189,9 @@ class Componentes:
         dataHigh = lstData[4:8][::-1]
         strData = dataLow + dataHigh
 
-        self.list.insert("", 'end', text=data.timestamp, values=(hex(funcion), hex(origen), "", strData))
+        valor = self.microredes.calcularValor(funcion, dataLow, dataHigh)
+
+        self.list.insert("", 'end', text=data.timestamp, values=(hex(funcion), hex(origen), strData, valor))
 
     def clearList(self):
         for i in self.list.get_children():
