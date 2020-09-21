@@ -5,6 +5,7 @@ from dialogs import change_address
 from dialogs import connect
 from datetime import datetime
 import comm as serial
+import time
 import microredes
 
 class Componentes:
@@ -189,9 +190,11 @@ class Componentes:
         dataHigh = lstData[4:8][::-1]
         strData = dataLow + dataHigh
 
+        timestamp = time.asctime(time.localtime(data.timestamp))
+
         valor = self.microredes.calcularValor(funcion, dataLow, dataHigh)
 
-        self.list.insert("", 'end', text=data.timestamp, values=(hex(funcion), hex(origen), strData, valor))
+        self.list.insert("", 'end', text=timestamp, values=(hex(funcion), hex(origen), strData, valor))
 
     def clearList(self):
         for i in self.list.get_children():
