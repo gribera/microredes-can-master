@@ -56,7 +56,7 @@ class Componentes:
         self.master.config(menu=menubar)
 
         status = Label(self.master,
-                       text="v0.2.1",
+                       text="v0.2.2",
                        bd=1,
                        relief=tk.SUNKEN).grid(row=10, column=0, columnspan=10, sticky='WE')
 
@@ -146,7 +146,7 @@ class Componentes:
         self.list = ttk.Treeview(self.frame, selectmode='browse', columns=("#0","#1", "#2", "#3"))
         self.list.pack(side=LEFT)
         # self.list.grid(row=8, column=0, padx=10, pady=10, columnspan=8)
-        self.list.column("#0", width=200, stretch=NO)
+        self.list.column("#0", width=100, stretch=NO)
         self.list.column("#1", width=65, stretch=NO)
         self.list.column("#2", width=65, stretch=NO)
         self.list.column("#3", width=300, stretch=NO)
@@ -155,24 +155,11 @@ class Componentes:
         self.list.heading('#1', text='Función', anchor=CENTER)
         self.list.heading('#2', text='Origen', anchor=CENTER)
         self.list.heading('#3', text='Data', anchor=CENTER)
-        self.list.heading('#4', text='Variable', anchor=CENTER)
+        self.list.heading('#4', text='Valor', anchor=CENTER)
 
         self.scrollbar = ttk.Scrollbar(self.frame, orient="vertical", command=self.list.yview)
         self.scrollbar.pack(side=RIGHT, fill='y')
         self.list.configure(yscrollcommand=self.scrollbar.set)
-
-
-        # self.scrollbar = tk.Scrollbar(self.frame)
-        # self.txtTerminal = tk.Text(self.frame, height=14, width=130)
-        # self.txtTerminal.config(yscrollcommand=self.scrollbar.set,
-        #                         background="#000000",
-        #                         foreground="#4DFF00",
-        #                         font=("Fixedsys", 10),
-        #                         padx=3, pady=3)
-        # self.txtTerminal.grid(row=10, column=0, columnspan=10)
-
-        # self.scrollbar.config(command=self.txtTerminal.yview)
-        # self.scrollbar.grid(row=10, column=6, sticky='NSW')
 
     def insertTerminal(self, data):
         self.txtTerminal.insert(tk.END, data)
@@ -182,19 +169,28 @@ class Componentes:
         origen = data.arbitration_id & 0x1F
         funcion = data.arbitration_id >> 5
         lstData = []
+        # data = [0x64, 0x06, 0x2e, 0x01, 0x00, 0x00, 0x00, 0xa2]
         for x in data.data:
             lstData.append(hex(x))
             pass
 
+        # Se separa la parte baja y la parte alta y se invierte
         dataLow = lstData[0:4][::-1]
         dataHigh = lstData[4:8][::-1]
         strData = dataLow + dataHigh
 
-        timestamp = time.asctime(time.localtime(data.timestamp))
+        # Recupero el nombre de la función de respuesta
+        strFuncion = list(self.dicFunctions.keys())[list(self.dicFunctions.values()).index(hex(funcion))]
 
-        valor = self.microredes.calcularValor(funcion, dataLow, dataHigh)
+        # Parsea la fecha
+        timestamp = datetime.fromtimestamp(data.timestamp).strftime('%H:%M:%S')
 
-        self.list.insert("", 'end', text=timestamp, values=(hex(funcion), hex(origen), strData, valor))
+        # Posición donde se encuentra la variable consultada dentro de la cadena con la respuesta
+        variable = data.data[2]
+        # Calcula el valor
+        valor = self.microredes.calcularValor(variable, dataLow, dataHigh)
+
+        self.list.insert("", 'end', text=timestamp, values=(strFuncion, hex(origen), strData, valor))
 
     def clearList(self):
         for i in self.list.get_children():
