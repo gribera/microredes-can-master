@@ -57,8 +57,8 @@ class MainWindow:
             # self.components.insertTerminal('\n')
 
     def datosEquipo(self):
-        pass
-        # self.comm.sendCmd('\x1b\x65\x0d'.encode())
+        self.components.insertList('')
+
 
     def canSend(self):
         commands = self.components.getValues()
