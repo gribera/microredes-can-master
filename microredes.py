@@ -32,25 +32,32 @@ class Microredes:
             valor = 0.001*valueLow
             unidad = 'A'
         elif variable in calcPmean:
-            valor = self.twosComplement(dataLow[2:4] + dataHigh[0:2], 32)/256
+            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:2])
+            valor = valueLow + valueHigh / 256
             unidad = 'W'
         elif variable in calcPmeanT:
-            valor = 4*(self.twosComplement(dataLow[2:4] + dataHigh[0:2], 32)/256)
+            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:2])
+            valor = 4*(valueLow + valueHigh / 256)
             unidad = 'W'
         elif variable in calcQmean:
-            valor = self.twosComplement(dataLow[2:4] + dataHigh[0:2], 32)/256
+            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:2])
+            valor = valueLow + valueHigh / 256
             unidad = 'VAr'
         elif variable in calcQmeanT:
-            valor = 4*(self.twosComplement(dataLow[2:4] + dataHigh[0:2], 32)/256)
+            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:2])
+            valor = 4*(valueLow + valueHigh / 256)
             unidad = 'VAr'
         elif variable in calcSmean:
-            valor = self.twosComplement(dataLow[2:4] + dataHigh[0:2], 32)/256
+            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:2])
+            valor = valueLow + valueHigh / 256
             unidad = 'VA'
         elif variable in calcSmeanT:
-            valor = 4*(self.twosComplement(dataLow[2:4] + dataHigh[0:2], 32)/256)
+            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:2])
+            valor = 4*(valueLow + valueHigh / 256)
             unidad = 'VA'
         elif variable in calcPFmean:
-            valor = 0.001*(self.twosComplement(dataLow[2:4] + dataHigh[0:2], 32)/256)
+            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:2])
+            valor = 0.001*(valueLow + valueHigh / 256)
             unidad = 'W'
         elif variable in calcTHDU:
             valor = 0.01*(valueLow)
@@ -66,14 +73,32 @@ class Microredes:
             return
 
         # Redondea el valor a 3 decimales y lo devuelve en formato string junto con su unidad de medida
-        valorFinal = str(round(valor, 3)) + ' ' + unidad
+        valorFinal = sign + str(round(valor, 3)) + ' ' + unidad
 
         return valorFinal
+
+    def calc(self, dataLow, dataHigh):
+        sign, val = self.twosComplement(dataLow + dataHigh, 32)
+        rsl = self.strToHex(val)
+        val1 = int('0x' + ''.join([format(int(c, 16), '02X') for c in rsl[0:2]]), 16)
+        val2 = int('0x' + ''.join([format(int(c, 16), '02X') for c in rsl[2:4]]), 16)
+        return sign, val1, val2
 
     def twosComplement(self, value, bits):
         # Se pasa a hexa el valor recibido
         val = int('0x' + ''.join([format(int(c, 16), '02X') for c in value]), 16)
         # Cálculo del complemento a 2
-        if (val & (1 << (bits - 1))) != 0: # if sign bit is set e.g., 8bit: 128-255
-            val = val - (1 << bits)        # compute negative value
-        return val                         # return positive value as is
+        if (val & (1 << (bits - 1))) != 0:
+            val = val - (1 << bits)
+
+        sign = '-' if val < 0 else ''
+
+        return sign, abs(val)
+
+    def strToHex(self, value):
+        # Convierto a hexadecimal y elimino '0x' del string
+        valor = hex(value)[2:]
+        # Agrego ceros a la izquierda para completar los 4 bytes
+        valorFilled = valor.zfill(8)
+        # Devuelve array de valores agrupado de a dos
+        return [hex(int(valorFilled[i:i+2], 16)) for i in range(0, len(valorFilled), 2)]
