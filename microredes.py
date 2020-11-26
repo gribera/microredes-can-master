@@ -22,41 +22,43 @@ class Microredes:
         valueLow = int('0x' + ''.join([format(int(c, 16), '02X') for c in dataLow[2:4]]), 16)
         valueHigh = int('0x' + ''.join([format(int(c, 16), '02X') for c in dataHigh[0:1]]), 16)
 
+        sign = ''
+
         if variable in calcUrms:
-            valor = 0.01*valueLow+valueHigh/256
+            valor = 0.01*(valueLow+valueHigh/256)
             unidad = 'v'
         elif variable in calcIrms:
-            valor = 0.001*valueLow+valueHigh/256
+            valor = 0.001*(valueLow+valueHigh/256)
             unidad = 'A'
         elif variable in calcIrmsN:
             valor = 0.001*valueLow
             unidad = 'A'
         elif variable in calcPmean:
-            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:2])
+            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:1])
             valor = valueLow + valueHigh / 256
             unidad = 'W'
         elif variable in calcPmeanT:
-            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:2])
+            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:1])
             valor = 4*(valueLow + valueHigh / 256)
             unidad = 'W'
         elif variable in calcQmean:
-            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:2])
+            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:1])
             valor = valueLow + valueHigh / 256
             unidad = 'VAr'
         elif variable in calcQmeanT:
-            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:2])
+            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:1])
             valor = 4*(valueLow + valueHigh / 256)
             unidad = 'VAr'
         elif variable in calcSmean:
-            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:2])
+            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:1])
             valor = valueLow + valueHigh / 256
             unidad = 'VA'
         elif variable in calcSmeanT:
-            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:2])
+            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:1])
             valor = 4*(valueLow + valueHigh / 256)
             unidad = 'VA'
         elif variable in calcPFmean:
-            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:2])
+            sign, valueLow, valueHigh = self.calc(dataLow[2:4], dataHigh[0:1])
             valor = 0.001*(valueLow + valueHigh / 256)
             unidad = 'W'
         elif variable in calcTHDU:
