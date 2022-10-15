@@ -6,6 +6,14 @@ from microredes_gui.ui import test_window
 class Tabs():
 	def __init__(self, root):
 		self.root = root
+		self.tab_container = self.create_tab_container()
+		tst1 = self.create_tab('Testing 1')
+		tst2 = self.create_tab('Testing 2')
+
+		t = test_window.Test_Window(tst1)
+		t.draw_selects()
+		t.draw_values(0)
+
 
 	def create_menu(self):
 		menubar = Menu(self.root)
@@ -20,18 +28,16 @@ class Tabs():
 		menubar.add_cascade(label="Funciones", menu=menuFunciones)
 		menubar.add_cascade(label="Salir", menu=menuSalir)
 
-	def create_tabs(self):
-		tabs = ttk.Notebook(self.root)
-		tabs.pack()
+	def create_tab_container(self):
+		tab = ttk.Notebook(self.root)
+		tab.pack()
+		return tab
 
-		frame1 = Frame(tabs, width=800, height=600)
-		frame2 = Frame(tabs, width=800, height=600)
-
-		frame1.pack(fill="both", expand=1)
-		frame2.pack(fill="both", expand=1)
-
-		tabs.add(frame1, text="Tab1")
-		tabs.add(frame2, text="Tab2")
+	def create_tab(self, title):
+		frame = Frame(self.tab_container, width=800, height=600)
+		frame.pack(fill="both", expand=1)
+		self.tab_container.add(frame, text=title)
+		return frame
 
 	def create_footer(self):
 		status = Label(self.root, text="v1.0.0", bd="1")
