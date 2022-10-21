@@ -13,7 +13,8 @@ class Tabs():
 		t = test_window.Test_Window(tst1)
 		t.draw_selects()
 		t.draw_values(0)
-
+		t.draw_terminal()
+		t.draw_buttons()
 
 	def create_menu(self):
 		menubar = Menu(self.root)
@@ -34,7 +35,7 @@ class Tabs():
 		return tab
 
 	def create_tab(self, title):
-		frame = Frame(self.tab_container, width=800, height=600)
+		frame = Frame(self.tab_container, width=800, height=550)
 		frame.pack(fill="both", expand=1)
 		self.tab_container.add(frame, text=title)
 		return frame
