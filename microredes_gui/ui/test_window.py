@@ -6,6 +6,8 @@ from datetime import datetime
 from microredes_gui.core import consts
 from microredes_gui.core import comm as serial
 
+from microredes import calc_helper as calc
+
 class Test_Window():
 	valores_int = []
 
@@ -32,7 +34,7 @@ class Test_Window():
 
 		# Se crea el objeto para la comunicación serial
 		self.comm = serial.Serial(self.thread2)
-		self.comm.connect('/dev/ttyACM0', '115200', '250000')
+		self.comm.connect('/dev/ttyACM1', '115200', '250000')
 
 	def draw_values(self, event):
 		val = 0
@@ -147,9 +149,11 @@ class Test_Window():
 		# Posición donde se encuentra la variable consultada dentro de la cadena con la respuesta
 		variable = data.data[2]
 		# Calcula el valor
-		valor = self.microredes.calcularValor(variable, data_low, data_high)
 
-		self.list.insert("", 'end', text=timestamp, values=(str_funcion, hex(origen), str_data, valor))
+		calc_helper = calc.CalcHelper()
+		valor, unidad = calc_helper.calc_value(variable, str_data)
+
+		self.lista.insert("", 'end', text=timestamp, values=(str_funcion, hex(origen), str_data, valor))
 
 	def clear_terminal(self):
 		for i in self.list.get_children():
