@@ -9,10 +9,12 @@ from microredes_gui.core import comm as serial
 from microredes import calc_helper as calc
 
 class Test_Window():
+	queue_thread = None
 	valores_int = []
 
 	def __init__(self, frame):
 		self.frame = frame
+		self.comm = None
 
 		c = consts.Consts()
 		self.functions = c.get_functions()
@@ -30,11 +32,8 @@ class Test_Window():
 
 		self.selected_option = {}
 
-		self.thread2 = threading.Thread(name="read", target=self.readQueue)
-
 		# Se crea el objeto para la comunicación serial
-		self.comm = serial.Serial(self.thread2)
-		self.comm.connect('/dev/ttyACM1', '115200', '250000')
+		self.comm = serial.Serial()
 
 	def draw_values(self, event):
 		val = 0
@@ -78,8 +77,9 @@ class Test_Window():
 			lb = ttk.Label(self.frame, text=self.comboLabel[idx])
 			lb.grid(row=1, column=idx, padx=10, pady=10)
 			# Agrega combo
+			combo_state = "readonly" if self.comm.is_connected() else "disabled"
 			cmbFnc = ttk.Combobox(self.frame, values=valores, justify="center",
-				textvariable=self.selected_option[idx], state="readonly", width=12)
+				textvariable=self.selected_option[idx], state=combo_state, width=12)
 			cmbFnc.bind("<<ComboboxSelected>>", self.draw_values)
 			cmbFnc.grid(row=2, column=idx, padx=5, pady=10)
 			cmbFnc.current(0)
@@ -108,13 +108,20 @@ class Test_Window():
 		self.lista.pack()
 
 	def draw_buttons(self):
-		buttonFrame = ttk.Frame(self.frame)
-		buttonFrame.grid(row=7, column=7, columnspan=3)
+		button_frame = ttk.Frame(self.frame)
+		button_frame.grid(row=7, column=7, columnspan=3)
 
-		btnSend = ttk.Button(buttonFrame, text="Enviar", command=self.can_send)
-		btnSend.pack(pady=10)
-		btnSend = ttk.Button(buttonFrame, text="Limpiar", command=self.clear_terminal)
-		btnSend.pack(pady=10)
+		btn_state = "readonly" if self.comm.is_connected() else "disabled"
+		btn_send = ttk.Button(button_frame, text="Enviar", state=btn_state, command=self.can_send)
+		btn_send.pack(pady=10)
+		btn_clear = ttk.Button(button_frame, text="Limpiar", state=btn_state, command=self.clear_terminal)
+		btn_clear.pack(pady=10)
+		if not self.comm.is_connected():
+			btn_connect = ttk.Button(button_frame, text="Conectar", command=self.connect)
+			btn_connect.pack(pady=10)
+		else:
+			btn_disconnect = ttk.Button(button_frame, text="Desconectar", command=self.disconnect)
+			btn_disconnect.pack(pady=10)
 
 	def can_send(self):
 		commands = self.valores_int
@@ -125,7 +132,7 @@ class Test_Window():
 		dataHigh = commands[6:10][::-1]
 		envio = dataLow + dataHigh
 
-		self.comm.sendCmd(arbitrationId, envio)
+		self.comm.send_cmd(arbitrationId, envio)
 
 	def insert_list(self, data):
 		origen = data.arbitration_id & 0x1F
@@ -156,13 +163,25 @@ class Test_Window():
 		self.lista.insert("", 'end', text=timestamp, values=(str_funcion, hex(origen), str_data, valor))
 
 	def clear_terminal(self):
-		for i in self.list.get_children():
-			self.list.delete(i)
+		for i in self.lista.get_children():
+			self.lista.delete(i)
 
-	def readQueue(self):
-		while self.comm.isConnected():
-			# print('queueRead')
-			queue_read = self.comm.getQueue()
-			self.insert_list(queue_read)
-			# self.components.insertTerminal(str(queueRead))
-			# self.components.insertTerminal('\n')
+	def connect(self):
+		self.comm.connect('/dev/ttyACM1', '115200', '250000')
+		self.queue_thread = threading.Thread(name="read", target=self.read_queue)
+		self.queue_thread.start()
+		self.refresh()
+
+	def disconnect(self):
+		self.comm.disconnect()
+		self.refresh()
+
+	def refresh(self):
+		self.draw_selects()
+		self.draw_buttons()
+
+	def read_queue(self):
+		while self.comm.is_connected():
+			queue_read = self.comm.get_queue()
+			if queue_read:
+				self.insert_list(queue_read)
