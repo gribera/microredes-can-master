@@ -23,4 +23,5 @@ class Main():
         self.root.mainloop()
 
     def close_window(self):
+        self.main_window.disconnect()
         self.root.destroy()

@@ -1,4 +1,4 @@
-from tkinter import DISABLED, NORMAL, Button, IntVar, LabelFrame, StringVar, Toplevel
+from tkinter import DISABLED, NORMAL, Button, LabelFrame, IntVar, StringVar, Toplevel
 import tkinter as tk
 from tkinter.ttk import Combobox
 

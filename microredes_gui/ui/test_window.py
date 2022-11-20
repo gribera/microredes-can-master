@@ -1,3 +1,4 @@
+import threading
 from tkinter import BOTH, E, Frame, StringVar, NO, CENTER, RIGHT, LEFT
 from tkinter import ttk
 from datetime import datetime
@@ -32,6 +33,13 @@ class Test_Window():
 			self.comboLabel.append('Byte ' + str(x + 1))
 
 		self.selected_option = {}
+
+		if self.comm.is_connected():
+			self.start_thread()
+
+	def start_thread(self):
+		self.queue_thread = threading.Thread(name="read", target=self.read_queue)
+		self.queue_thread.start()
 
 	def draw_test_window(self):
 		self.draw_selects()
@@ -123,12 +131,6 @@ class Test_Window():
 		btn_send.pack(pady=10)
 		btn_clear = ttk.Button(button_frame, text="Limpiar", state=btn_state, command=self.clear_terminal)
 		btn_clear.pack(pady=10)
-		# if not self.comm.is_connected():
-		# 	btn_connect = ttk.Button(button_frame, text="Conectar", command=self.connect)
-		# 	btn_connect.pack(pady=10)
-		# else:
-		# 	btn_disconnect = ttk.Button(button_frame, text="Desconectar", command=self.disconnect)
-		# 	btn_disconnect.pack(pady=10)
 
 	def can_send(self):
 		commands = self.valores_int
@@ -173,12 +175,6 @@ class Test_Window():
 		for i in self.lista.get_children():
 			self.lista.delete(i)
 
-	# def connect(self):
-	# 	self.comm.connect('/dev/ttyACM1', '115200', '250000')
-	# 	self.queue_thread = threading.Thread(name="read", target=self.read_queue)
-	# 	self.queue_thread.start()
-	# 	self.refresh()
-
 	def disconnect(self):
 		self.comm.disconnect()
 		self.refresh()
@@ -186,6 +182,8 @@ class Test_Window():
 	def refresh(self):
 		self.draw_selects()
 		self.draw_buttons()
+		if self.comm.is_connected():
+			self.start_thread()
 
 	def read_queue(self):
 		while self.comm.is_connected():
